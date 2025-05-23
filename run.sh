@@ -1,3 +1,3 @@
 #!/bin/bash
 export PYTHONPATH=$(pwd)
-python services/midi_service/app.py
+python services/tempo_service/app.py

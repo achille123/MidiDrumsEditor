@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  tempo_service:
+    build:
+      context: ./services/tempo_service
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./static/uploads:/app/uploads
+
+  midi_service:
+    build:
+      context: ./services/midi_service
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./static/uploads:/app/uploads

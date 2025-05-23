@@ -1,6 +1,7 @@
 from flask import Flask, request, send_file
 from flask_cors import CORS
-from services.midi_service.midi_generator import process_audio_to_midi
+# from services.midi_service.midi_generator import process_audio_to_midi
+from midi_generator import process_audio_to_midi
 import os
 
 app = Flask(__name__)
