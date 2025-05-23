@@ -1,0 +1,16 @@
+/project-root
+├── frontend/                # Web app statique
+│   ├── index.html
+│   ├── script.js
+│   ├── style.css
+│   └── (plus tard : Vue, React, etc.)
+├── services/
+│   ├── audio_api/           # Service Flask qui reçoit l'audio
+│   │   ├── app.py
+│   │   └── audio_utils.py
+│   ├── midi_service/        # Service Flask qui produit un .mid
+│   │   ├── app.py
+│   │   └── midi_generator.py
+│   └── (plus tard : ai_service, db_service, etc.)
+├── gateway/                 # (facultatif) reverse proxy ou API Gateway
+├── docker-compose.yml       # pour orchestre tout ça proprement
