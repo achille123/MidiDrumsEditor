@@ -7,5 +7,5 @@ docker-compose up
 docker ps
 
 
-curl -X POST http://localhost:5001/analyze-tempo 
+curl -X POST http://localhost:5000/analyze-tempo 
   -F "audio=@static/uploads/Test95.wav"

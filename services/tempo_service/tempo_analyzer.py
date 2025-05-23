@@ -6,6 +6,6 @@ def analyze_tempo(filepath):
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
     return {
-        "tempo": round(tempo, 2),
+        "tempo": round(tempo[0], 2),
         "beats": [round(bt, 3) for bt in beat_times]
     }
