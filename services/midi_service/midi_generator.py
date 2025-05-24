@@ -29,7 +29,7 @@ def process_audio_to_midi(filepath):
     # Nom de fichier basé sur l'heure
     filename = f"drums_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mid"
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(base_dir, '..', '..', 'static', 'uploads', filename)
+    output_path = os.path.join(base_dir, '..', '..', 'static', 'midi', filename)
     output_path = os.path.abspath(output_path)
     mid.save(output_path)
     return output_path

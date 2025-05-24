@@ -7,48 +7,50 @@ uploadInput.addEventListener("change", async (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
-  // ✅ Afficher le nom du fichier
   filenameDisplay.textContent = `🎵 ${file.name}`;
-
-  // ✅ Préparer le lecteur audio
-  const audioURL = URL.createObjectURL(file);
-  audioPlayer.src = audioURL;
-
-  // ✅ Forcer le lecteur à apparaître
+  audioPlayer.src = URL.createObjectURL(file);
   if (audioPlayer.classList.contains("hidden")) {
     audioPlayer.classList.remove("hidden");
-
   }
 
-  // ✅ Afficher le loader
   loader.classList.remove("hidden");
 
   const formData = new FormData();
   formData.append("audio", file);
 
   try {
-    const response = await fetch("http://localhost:5000/upload", {
+    // 1. Upload audio vers upload_service (port 5002)
+    const uploadRes = await fetch("http://localhost:5002/upload-audio", {
       method: "POST",
       body: formData
     });
 
-    if (!response.ok) throw new Error("Erreur serveur");
+    if (!uploadRes.ok) throw new Error("Erreur upload");
+    const uploadData = await uploadRes.json();
+    const filename = uploadData.filename;
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
+    // 2. Appel vers midi_service (port 5000)
+    const midiRes = await fetch("http://localhost:5000/generate-midi", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename })
+    });
 
+    if (!midiRes.ok) throw new Error("Erreur MIDI");
+    const midiBlob = await midiRes.blob();
+    const midiUrl = URL.createObjectURL(midiBlob);
+
+    // 3. Téléchargement du fichier MIDI
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "converted.mid";
+    a.href = midiUrl;
+    a.download = filename.replace(/\.[^/.]+$/, "") + ".mid";
     a.click();
+
   } catch (error) {
     loader.textContent = "❌ Erreur serveur";
     loader.classList.remove("animate-pulse");
     console.error("❌ Erreur :", error);
   } finally {
     loader.classList.add("hidden");
-
-    // 🔁 NE cache surtout pas le lecteur ici
-    // donc on ne touche PAS à audioPlayer.classList ici
   }
 });

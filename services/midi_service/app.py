@@ -1,36 +1,32 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
-# from services.midi_service.midi_generator import process_audio_to_midi
 from midi_generator import process_audio_to_midi
 import os
 
 app = Flask(__name__)
 CORS(app)
-UPLOAD_FOLDER = 'static/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route('/upload', methods=['POST'])
-def upload_audio():
-    print("🎵 Requête reçue !")
+# 📁 Dossier contenant les fichiers audio déjà uploadés
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'static', 'uploads')
 
-    if 'audio' not in request.files:
-        print("❌ Aucun fichier 'audio' reçu")
-        return "No file part", 400
+@app.route('/generate-midi', methods=['POST'])
+def generate_midi():
+    data = request.get_json()
+    if not data or 'filename' not in data:
+        return jsonify({'error': 'Missing filename'}), 400
 
-    file = request.files['audio']
-    if file.filename == '':
-        print("❌ Fichier sans nom")
-        return "No selected file", 400
-
-    filename = file.filename
+    filename = data['filename']
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-    print(f"💾 Sauvegarde dans : {filepath}")
 
+    if not os.path.exists(filepath):
+        return jsonify({'error': f'File not found: {filename}'}), 404
+
+    print(f"🎧 Génération MIDI depuis : {filepath}")
     midi_path = process_audio_to_midi(filepath)
+    print(f"🎼 MIDI généré : {midi_path}")
+
     return send_file(midi_path, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
+    app.run(debug=True, port=5000)

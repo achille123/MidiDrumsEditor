@@ -13,6 +13,6 @@ RUN pip config set global.progress_bar off
 # 📦 Installation groupée sans mise à jour de pip
 RUN pip install flask flask-cors librosa soundfile --no-cache-dir
 
-EXPOSE 5001
+EXPOSE 5000
 
 CMD ["python", "app.py"]
