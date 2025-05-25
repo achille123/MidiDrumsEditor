@@ -14,6 +14,7 @@ curl -X POST http://localhost:5001/analyze-tempo -F "audio=@static/uploads/AUD_1
 curl -X POST http://localhost:5000/generate-midi  -H "Content-Type: application/json" -d '{"filename": "Test95.wav"}'
 
 curl -X POST http://localhost:5003/detect-onsets -F "audio=@static/uploads/Test95.wav"
+curl -X POST http://localhost:5003/detect-onsets -F "audio=@static/uploads/AUD_7.mp3"
 
 curl -X POST http://localhost:5004/classify-drums \
   -H "Content-Type: application/json" \

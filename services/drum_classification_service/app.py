@@ -4,6 +4,7 @@ import librosa
 import os
 import numpy as np
 import json
+import tabulate
 
 app = Flask(__name__)
 CORS(app)
@@ -16,6 +17,7 @@ UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'static', 'uploads')
 def classify_drums():
     # ✅ Vérifie que les données attendues sont là
     data = request.get_json()
+    print('Data obtained')
     if not data or 'filename' not in data or 'onsets' not in data:
         return jsonify({'error': 'Missing filename or onsets'}), 400
 
@@ -56,6 +58,7 @@ def classify_drums():
             "centroid": float(round(mean_centroid, 2))
         })
 
+    print(result)
     return jsonify(result)
 
 if __name__ == '__main__':

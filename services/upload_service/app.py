@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -36,12 +37,24 @@ def upload_audio():
     filename = secure_filename(file.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
-
     print(f"✅ Fichier sauvegardé dans : {filepath}")
+
+    # 🧠 Appel automatique vers orchestrator
+    try:
+        orchestrator_res = requests.post(
+            "http://localhost:5010/process-audio",
+            json={"filename": filename}
+        )
+        orchestrator_res.raise_for_status()
+        orchestration_result = orchestrator_res.json()
+    except Exception as e:
+        print("❌ Erreur orchestrator:", e)
+        return jsonify({'error': 'Orchestrator failed', 'details': str(e)}), 500
+
     return jsonify({
-        'message': 'File uploaded successfully',
+        'message': 'File uploaded and processing started',
         'filename': filename,
-        'path': f'static/uploads/{filename}'
+        'orchestration': orchestration_result
     })
 
 if __name__ == '__main__':

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<body>
+<input type="file" id="f" />
+<script>
+document.getElementById("f").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  const formData = new FormData();
+  formData.append("audio", file);
+  try {
+    const res = await fetch("http://localhost:5003/detect-onsets", {
+      method: "POST",
+      body: formData
+    });
+
+
+    const json = await res.json();
+    console.log("✅ Onset result:", json);
+  } catch (err) {
+    console.error("❌ Error:", err);
+  }
+});
+</script>
+</body>
+</html>

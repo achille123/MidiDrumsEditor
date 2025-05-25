@@ -5,6 +5,7 @@ kill -9 $(lsof -ti :5001 -sTCP:LISTEN)
 kill -9 $(lsof -ti :5002 -sTCP:LISTEN)
 kill -9 $(lsof -ti :5003 -sTCP:LISTEN)
 kill -9 $(lsof -ti :5004 -sTCP:LISTEN)
+kill -9 $(lsof -ti :5010 -sTCP:LISTEN)
 
 export PYTHONPATH=$(pwd)
 
@@ -21,6 +22,9 @@ echo "🚀 Lancement de onset_service (port 5003)"
 python services/onset_service/app.py &
 
 echo "🚀 Lancement de drum_classification_service (port 5004)"
-python services/drum_classification_service/app.py
+python services/drum_classification_service/app.py &
+
+echo "🚀 Lancement de orchestrator_service (port 5010)"
+python services/orchestrator_service/app.py
 
 echo "✅ Tous les services sont lancés"
