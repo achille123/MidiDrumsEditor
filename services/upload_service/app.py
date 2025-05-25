@@ -39,23 +39,12 @@ def upload_audio():
     file.save(filepath)
     print(f"✅ Fichier sauvegardé dans : {filepath}")
 
-    # 🧠 Appel automatique vers orchestrator
-    try:
-        orchestrator_res = requests.post(
-            "http://localhost:5010/process-audio",
-            json={"filename": filename}
-        )
-        orchestrator_res.raise_for_status()
-        orchestration_result = orchestrator_res.json()
-    except Exception as e:
-        print("❌ Erreur orchestrator:", e)
-        return jsonify({'error': 'Orchestrator failed', 'details': str(e)}), 500
-
+    # ✅ Just return the filename, no orchestration
     return jsonify({
-        'message': 'File uploaded and processing started',
-        'filename': filename,
-        'orchestration': orchestration_result
+        'message': 'File uploaded successfully',
+        'filename': filename
     })
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)

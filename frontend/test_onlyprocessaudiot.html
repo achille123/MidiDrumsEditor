@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <button id="start">Démarrer l’orchestration</button>
+
+    <script>
+      document.getElementById("start").addEventListener("click", async () => {
+        try {
+          const res = await fetch("http://127.0.0.1:5010/process-audio", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ filename: "AUD_2.mp3" })
+          });
+
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Orchestrator failed (${res.status}): ${text}`);
+          }
+
+          const result = await res.json();
+          console.log("✅ Réponse de l’orchestrateur:", result);
+          alert("Orchestration réussie: " + JSON.stringify(result));
+        } catch (err) {
+          console.error("❌ Erreur:", err.message || err);
+          alert("Erreur: " + err.message);
+        }
+      });
+    </script>
+  </body>
+</html>
