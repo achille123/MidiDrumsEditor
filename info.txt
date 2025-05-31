@@ -1,0 +1,33 @@
+Quick test
+
+./run.sh
+
+
+docker-compose up --build
+
+docker-compose up
+
+docker ps
+
+
+curl -X POST http://localhost:5001/analyze-tempo -F "audio=@static/uploads/Test95.wav"
+
+curl -X POST http://localhost:5001/analyze-tempo -F "audio=@static/uploads/AUD_16.mp3"
+
+curl -X POST http://localhost:5000/generate-midi  -H "Content-Type: application/json" -d '{"filename": "Test95.wav"}'
+
+curl -X POST http://localhost:5003/detect-onsets -F "audio=@static/uploads/Test95.wav"
+curl -X POST http://localhost:5003/detect-onsets -F "audio=@static/uploads/AUD_7.mp3"
+
+curl -X POST http://localhost:5004/classify-drums \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filename": "Test95.wav",
+    "onsets": [0.32, 0.65, 0.97]
+  }'
+
+
+
+
+Onsets	Moments où n'importe quel son démarre soudainement (ex: un coup de caisse claire, une note de piano, etc.)
+Beats	Pulsations régulières du rythme musical (ex: 1-2-3-4), comme un métronome estimé automatiquement

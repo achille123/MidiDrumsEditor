@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Orchestrateur</title>
+  </head>
+  <body>
+    <h1>Test Audio to MIDI</h1>
+
+    <input type="file" id="fichier" />
+    <br /><br />
+
+    <button id="upload">🎵 Charger et uploader l'audio</button>
+    <button id="orchestrer" disabled>🧠 Lancer l’orchestrateur</button>
+
+    <p id="status"></p>
+
+    <h2>Résultat de classification :</h2>
+    <table border="1" id="resultats" style="border-collapse: collapse; display:none;">
+      <thead>
+        <tr>
+          <th>Temps (s)</th>
+          <th>Type</th>
+          <th>Vélocité</th>
+          <th>Centroid</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      let uploadedFilename = null;
+
+      document.getElementById("upload").addEventListener("click", async () => {
+        const fichier = document.getElementById("fichier").files[0];
+        if (!fichier) {
+          alert("Merci de sélectionner un fichier audio.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("audio", fichier);
+
+        try {
+          document.getElementById("status").textContent = "⏳ Upload en cours...";
+          const uploadRes = await fetch("http://localhost:5002/upload-audio", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!uploadRes.ok) {
+            const err = await uploadRes.text();
+            throw new Error("Erreur upload: " + err);
+          }
+
+          const uploadJson = await uploadRes.json();
+          console.log("✅ Upload terminé:", uploadJson);
+
+          uploadedFilename = uploadJson.filename;
+          document.getElementById("status").textContent = "✅ Fichier uploadé : " + uploadedFilename;
+
+          // Active le bouton orchestrateur
+          document.getElementById("orchestrer").disabled = false;
+        } catch (err) {
+          console.error("❌ Erreur upload:", err.message);
+          alert("Erreur upload : " + err.message);
+        }
+      });
+
+      document.getElementById("orchestrer").addEventListener("click", async () => {
+        if (!uploadedFilename) {
+          alert("Aucun fichier n'a été uploadé.");
+          return;
+        }
+
+        try {
+          document.getElementById("status").textContent = "⏳ Orchestration en cours...";
+
+          const orchestratorRes = await fetch("http://localhost:5010/process-audio", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ filename: uploadedFilename })
+          });
+
+          if (!orchestratorRes.ok) {
+            const err = await orchestratorRes.text();
+            throw new Error("Erreur orchestrator: " + err);
+          }
+
+          const result = await orchestratorRes.json();
+          console.log("✅ Résultat orchestration:", result);
+
+          const tbody = document.querySelector("#resultats tbody");
+          tbody.innerHTML = "";
+
+          (result.classification || []).forEach(entry => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${entry.time}</td>
+              <td>${entry.type}</td>
+              <td>${entry.velocity}</td>
+              <td>${entry.centroid}</td>
+            `;
+            tbody.appendChild(row);
+          });
+
+          document.getElementById("resultats").style.display = "table";
+          document.getElementById("status").textContent = "✅ Orchestration terminée";
+
+        } catch
