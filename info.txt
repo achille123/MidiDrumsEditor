@@ -1,4 +1,7 @@
+Quick test
+
 ./run.sh
+
 
 docker-compose up --build
 
