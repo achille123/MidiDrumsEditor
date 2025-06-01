@@ -1,0 +1,17 @@
+.stars-animation {
+  background: radial-gradient(white 1px, transparent 1px),
+              radial-gradient(white 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+  animation: moveStars 60s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes moveStars {
+  0% {
+    background-position: 0 0, 20px 20px;
+  }
+  100% {
+    background-position: 1000px 1000px, 1020px 1020px;
+  }
+}
