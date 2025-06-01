@@ -3,35 +3,39 @@ from flask_cors import CORS
 import librosa
 import os
 import numpy as np
-import json
-import tabulate
+import requests
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
 
-# 📁 Chemin vers les fichiers audio déjà uploadés
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, 'static', 'uploads')
+UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'static', 'uploads'))
+
+ONSET_SERVICE_URL = "http://localhost:5003/detect-onsets"
 
 @app.route('/classify-drums', methods=['POST'])
 def classify_drums():
-    # ✅ Vérifie que les données attendues sont là
-    data = request.get_json()
-    print('Data obtained')
-    if not data or 'filename' not in data or 'onsets' not in data:
-        return jsonify({'error': 'Missing filename or onsets'}), 400
+    filename = request.args.get('filename')
+    if not filename:
+        return jsonify({'error': 'Missing filename'}), 400
 
-    filename = data['filename']
-    onset_times = data['onsets']
-
-    # 📄 Reconstitue le chemin du fichier déjà uploadé
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    safe_filename = secure_filename(filename)
+    filepath = os.path.join(UPLOAD_FOLDER, safe_filename)
     if not os.path.exists(filepath):
         return jsonify({'error': 'Audio file not found'}), 404
 
-    # 🎧 Charge l'audio
-    y, sr = librosa.load(filepath)
+    # 🛰 Appel au microservice /detect-onsets
+    try:
+        onset_response = requests.get(ONSET_SERVICE_URL, params={"filename": filename})
+        if onset_response.status_code != 200:
+            return jsonify({'error': 'Failed to get onsets', 'details': onset_response.text}), 502
+        onset_data = onset_response.json()
+        onset_times = onset_data.get("onsets", [])
+    except Exception as e:
+        return jsonify({'error': f'Onset service call failed: {str(e)}'}), 500
 
+    # 🎧 Analyse des segments
+    y, sr = librosa.load(filepath)
     result = []
     for t in onset_times:
         onset_sample = int(t * sr)
@@ -58,7 +62,6 @@ def classify_drums():
             "centroid": float(round(mean_centroid, 2))
         })
 
-    print(result)
     return jsonify(result)
 
 if __name__ == '__main__':

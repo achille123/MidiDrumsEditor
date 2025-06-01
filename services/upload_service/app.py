@@ -24,10 +24,10 @@ def allowed_file(filename):
 
 @app.route('/upload-audio', methods=['POST'])
 def upload_audio():
-    if 'audio' not in request.files:
+    if 'filename' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 
-    file = request.files['audio']
+    file = request.files['filename']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 

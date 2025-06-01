@@ -1,60 +1,38 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import librosa
 import os
-from pydub import AudioSegment
-import tempfile
+import librosa
+from werkzeug.utils import secure_filename
 
-# Initialisation de l'application Flask
 app = Flask(__name__)
-CORS(app)  # Autorise les requêtes cross-origin (utile pour le frontend JS)
+CORS(app)
 
-# Définition de l'endpoint POST /detect-onsets
-@app.route('/detect-onsets', methods=['POST'])
+BASE_UPLOAD_FOLDER = os.path.abspath('static/uploads')
+
+@app.route('/detect-onsets', methods=['GET'])
 def detect_onsets():
-    print("📡 Requête reçue par onset_service")
-    print("📡 Fichier recu:",request.files.get("audio"))
+    filename = request.args.get('filename')
+    if not filename:
+        return jsonify({"error": "Missing 'filename' parameter"}), 400
 
-    # Vérifie si le fichier audio est bien inclus dans la requête
-    if 'audio' not in request.files:
-        return jsonify({'error': 'No audio provided'}), 400
+    safe_filename = secure_filename(filename)
+    filepath = os.path.join(BASE_UPLOAD_FOLDER, safe_filename)
 
-    # Récupère le fichier et son nom
-    audio = request.files['audio']
-    filename = audio.filename
+    if not os.path.isfile(filepath):
+        return jsonify({"error": f"File '{safe_filename}' not found"}), 404
 
-    # Définit un chemin temporaire pour sauvegarder le fichier
-    filepath = os.path.join('/tmp', filename)
-    audio.save(filepath)
+    try:
+        y, sr = librosa.load(filepath)
+        onsets = librosa.onset.onset_detect(y=y, sr=sr, units='time')
+        duration = librosa.get_duration(y=y, sr=sr)
 
-    # 🔄 Convertit en WAV si c'est un fichier MP3
-    if filepath.endswith('.mp3'):
-        try:
-            audio_seg = AudioSegment.from_file(filepath, format="mp3")
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
-                audio_seg.export(tmpfile.name, format="wav")
-                filepath = tmpfile.name  # Met à jour le chemin pour librosa
-        except Exception as e:
-            return jsonify({'error': f'Conversion MP3 failed: {str(e)}'}), 500
+        return jsonify({
+            'duration': duration,
+            'onsets': onsets.tolist()
+        })
 
-    # 📥 Charge le fichier audio avec librosa
-    y, sr = librosa.load(filepath)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    # 🥁 Détecte les onsets (déclenchements rythmiques)
-    onsets = librosa.onset.onset_detect(y=y, sr=sr, units='time')
-    print("📡 Onsets détectés onset_service")
-
-
-    # ⏱️ Calcule la durée totale du fichier audio
-    duration = librosa.get_duration(y=y, sr=sr)
-    print(f"✅ Duration du fichier: {duration}")
-    print(f"✅ Liste des onsets: {onsets.tolist()}")
-    # ✅ Retourne les onsets et la durée en JSON
-    return jsonify({
-        'duration': duration,
-        'onsets': onsets.tolist()
-    })
-
-# 🚀 Lancement du service Flask
 if __name__ == '__main__':
     app.run(debug=True, port=5003)
